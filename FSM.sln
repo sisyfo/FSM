@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2018
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSM", "FSM\FSM.csproj", "{AEDF0AC3-4B8C-4666-8021-C91407EC85B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTestApp", "ConsoleTestApp\ConsoleTestApp.csproj", "{9CA2645E-BCD8-43D0-81F1-EC5CFDA5C574}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AEDF0AC3-4B8C-4666-8021-C91407EC85B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEDF0AC3-4B8C-4666-8021-C91407EC85B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEDF0AC3-4B8C-4666-8021-C91407EC85B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEDF0AC3-4B8C-4666-8021-C91407EC85B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CA2645E-BCD8-43D0-81F1-EC5CFDA5C574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CA2645E-BCD8-43D0-81F1-EC5CFDA5C574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CA2645E-BCD8-43D0-81F1-EC5CFDA5C574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CA2645E-BCD8-43D0-81F1-EC5CFDA5C574}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E9365490-CD4A-4A10-A11F-4B6875B46E31}
+	EndGlobalSection
+EndGlobal
