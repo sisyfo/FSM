@@ -19,7 +19,6 @@ namespace FSM
         {
             try
             {
-                Console.WriteLine("entro");
                 while (true)
                 {
                     Event nextEvent = EventsQueue.Take(token);
@@ -28,12 +27,11 @@ namespace FSM
                         CurrentState = nextEvent.targetState;
                         CurrentState.action();
                     }
-                    Console.WriteLine("inloop");
                     if (token.IsCancellationRequested) break;
                 }
             }
-            catch (OperationCanceledException _) { Console.WriteLine("exception"); }
-            finally { Console.WriteLine("ta luego"); EventsQueue.Dispose(); }
+            catch (OperationCanceledException _) { }
+            finally { EventsQueue.Dispose(); }
         }
 
         public FiniteStateMachine(IEnumerable<State> states, IEnumerable<Event> events, State currentState)
