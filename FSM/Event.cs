@@ -1,4 +1,4 @@
-﻿namespace FSM
+﻿namespace sisifo.FSM
 {
     public class Event<St, Ev>
     {

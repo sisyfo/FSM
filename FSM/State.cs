@@ -2,22 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FSM
+namespace sisifo.FSM
 {
-    public class Fallback<St>
-    {
-        public St State {get;}
-        public int WaitTime { get; }
-
-        private Fallback(St state, int waitTime)
-        {
-            this.State = state;
-            this.WaitTime = waitTime;
-        }
-
-        public static Fallback<St> CreateFallback(St state, int waitTime) => new Fallback<St>(state, waitTime);
-    }
-
     public class State<St, Ev> : IEquatable<State<St, Ev>>
     {
         public St id { get; }
@@ -27,7 +13,7 @@ namespace FSM
         public IEnumerable<Event<St, Ev>> transitions { get; }
         public Fallback<St> fallback { get; }
 
-        public State(St id) : this(id, null, null, null, Enumerable.Empty<Event<St, Ev>>()) { }
+        private State(St id) : this(id, null, null, null, Enumerable.Empty<Event<St, Ev>>()) { }
 
         private State(St id, Action action = null, Action before = null, Action after = null, 
             IEnumerable<Event<St, Ev>> transitions = null, Fallback<St> fallback = null)
@@ -66,42 +52,5 @@ namespace FSM
         {
             yield return t;
         }
-
     }
-
-
-    public static class StateStatic
-    {
-        public static IEnumerable<State<St, Ev>> When<St, Ev>(this IEnumerable<State<St, Ev>> @this, State<St, Ev> state) =>
-            (new[] { state }).Concat(@this);
-        public static IEnumerable<State<St, Ev>> Then<St, Ev>(this IEnumerable<State<St, Ev>> @this, Action action) => 
-            @this.Select((p, i) => (i == 0 && p != null) ? p.SetAction(action) : p);
-        public static IEnumerable<State<St, Ev>> Before<St, Ev>(this IEnumerable<State<St, Ev>> @this, Action before) =>
-            @this.Select((p, i) => (i == 0 && p != null) ? p.SetBefore(before) : p);
-        public static IEnumerable<State<St, Ev>> After<St, Ev>(this IEnumerable<State<St, Ev>> @this, Action after) =>
-            @this.Select((p, i) => (i == 0 && p != null) ? p.SetAfter(after) : p);
-        public static IEnumerable<State<St, Ev>> TransitionTo<St, Ev>(this IEnumerable<State<St, Ev>> @this, St t, Ev ev) =>
-            @this.Select((p, i) => (i == 0 && p != null) ? p.AddTransition(t, ev) : p);
-        public static IEnumerable<State<St, Ev>> Fallback<St, Ev>(this IEnumerable<State<St, Ev>> @this, St t, int time) =>
-            @this.Select((p, i) => (i == 0 && p != null) ? p.SetFallback(t, time) : p);
-
-
-        //public static State<St, Ev> GetState<St, Ev>(this IEnumerable<State<St, Ev>> @this, St t, Ev ev) =>
-          //  @this.FirstOrDefault(p => (p.id.Equals(t)) && (p.transitions?.Any(tt => tt.Item2.Equals(ev)) ?? false));
-            
-            //@this.First(p => p.id.Equals(t)) : 
-            //default(State<St, Ev>);
-
-        //public static St GetTransition<St, Ev>(this State<St, Ev> @this, Ev stev) =>
-          //  (stev != null && @this.transitions != null) ? @this.transitions.First(p => p.Item2.Equals(stev)).Item1 : default(St);
-            
-            
-
-
-
-
-
-
-    }
-
 }

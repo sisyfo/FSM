@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace FSM
+namespace sisifo.FSM
 {
     public class FiniteStateMachine<St, Ev> : IDisposable
     {
@@ -41,8 +41,11 @@ namespace FSM
                         currentStEv.after?.Invoke();
                         targetStEv.before?.Invoke();
                         targetStEv.action?.Invoke();
-                        fallbackData = (fallback != null) ? (fallback.State, fallback.WaitTime) : (default(St), InfiniteWaitTime);
+                        
                     }
+
+                    fallbackData = (fallback != null) ? (fallback.State, fallback.WaitTime) : (default(St), InfiniteWaitTime);
+
                     if (token.IsCancellationRequested) break;
                 }
             }
