@@ -1,2 +1,2 @@
 # FSM
-Finite State Machine
+C# Implementation of a Thread-Safe Finite State Machine (FSM) with a fluent API.
