@@ -3,15 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace FSM
 {
-    public class FiniteStateMachine : IDisposable
+    public class FiniteStateMachine<St, Ev> : IDisposable
     {
-        private readonly BlockingCollection<Event> EventsQueue;
-        private State CurrentState;
-        private readonly IEnumerable<State> States;
-        private readonly IEnumerable<Event> Events;
+        private const int InfiniteWaitTime = -1;
+        private readonly BlockingCollection<Ev> EventsQueue;
+        private St CurrentState;
+        private readonly IEnumerable<State<St,Ev>> StateMachineBuild;
         private readonly CancellationTokenSource tokenSource;
         private readonly CancellationToken token;
 
@@ -19,13 +20,28 @@ namespace FSM
         {
             try
             {
+                (St state, int waitTime) fallbackData = (default(St), InfiniteWaitTime);
                 while (true)
                 {
-                    Event nextEvent = EventsQueue.Take(token);
-                    if (nextEvent.sourceState == CurrentState)
+                    Ev nextEvent;
+                    EventsQueue.TryTake(out nextEvent, fallbackData.waitTime, token);
+
+                    var currentStEv = StateMachineBuild?.FirstOrDefault(p => p.id.Equals(CurrentState));
+                    var eventTransition = currentStEv?.transitions?.FirstOrDefault(p => p.id.Equals(nextEvent));
+                    var targetStEv = (fallbackData.waitTime != InfiniteWaitTime) ? 
+                        StateMachineBuild?.FirstOrDefault(p => p.id.Equals(fallbackData.state)) :
+                        StateMachineBuild?.FirstOrDefault(p => eventTransition != null && p.id.Equals(eventTransition.targetState));
+                    var fallback = targetStEv?.fallback;
+
+                    if (targetStEv != null)
                     {
-                        CurrentState = nextEvent.targetState;
-                        CurrentState.action();
+                        CurrentState = (fallbackData.waitTime != InfiniteWaitTime) ? 
+                            fallbackData.state : 
+                            eventTransition.targetState;
+                        currentStEv.after?.Invoke();
+                        targetStEv.before?.Invoke();
+                        targetStEv.action?.Invoke();
+                        fallbackData = (fallback != null) ? (fallback.State, fallback.WaitTime) : (default(St), InfiniteWaitTime);
                     }
                     if (token.IsCancellationRequested) break;
                 }
@@ -34,24 +50,23 @@ namespace FSM
             finally { EventsQueue.Dispose(); }
         }
 
-        public FiniteStateMachine(IEnumerable<State> states, IEnumerable<Event> events, State currentState)
+        public FiniteStateMachine(IEnumerable<State<St, Ev>> stateMachineBuild, St currentState)
         {
-            States = states;
-            Events = events;
-            CurrentState = currentState;
-            EventsQueue = new BlockingCollection<Event>(new ConcurrentQueue<Event>());
-            tokenSource = new CancellationTokenSource();
-            token = tokenSource.Token;
+            this.StateMachineBuild = stateMachineBuild;
+            this.CurrentState = currentState;
+            this.EventsQueue = new BlockingCollection<Ev>(new ConcurrentQueue<Ev>());
+            this.tokenSource = new CancellationTokenSource();
+            this.token = tokenSource.Token;
             new Task(() => loopTask(), token).Start();
         }
 
-        public void TriggerEvent(Event newevent)
+        public void TriggerEvent(Ev newevent)
         {
             try { EventsQueue.Add(newevent); }
             catch (ObjectDisposedException _) { }
         }
 
-        public State getState() => CurrentState;
+        public State<St, Ev> getState() => CurrentState;
 
         public void Dispose()
         {

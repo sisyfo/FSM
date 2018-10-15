@@ -1,52 +1,52 @@
 ﻿using FSM;
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using static FSM.StateStatic;
+using System.Linq;
 
 namespace ConsoleTestApp
 {
     class Program
     {
+        enum States { estado1, estado2 };
+        enum Events { ev1, ev2 };
+
         static void Main(string[] args)
         {
+            //State<States> p = States.estado1;
 
-            State s0 = State.CreateState(0, () => { Console.WriteLine("hola desde s0"); });
-            State s1 = State.CreateState(1, () => { Console.WriteLine("hola desde s1"); });
+            //FSM.when(States.estado1).then(action).before(action).after(action).Transition(events[] ev, targetState).fallback(estado/evento, tiempo)
+            //States.estado1
+            //var yu = new [] { State.When(States.estado1), States.estado2 };
 
-            Event e0 = Event.CreateEvent(0, s0, s1 );
-            Event e1 = Event.CreateEvent(1, s1, s0 );
+            var sts = State<States, Events>.
+                When(States.estado1).
+                    Then(() => Console.WriteLine("then estado 1")).
+                    Before(() => Console.WriteLine("before estado1")).
+                    After(() => Console.WriteLine("after estado 1")).
+                    TransitionTo(States.estado2, Events.ev1).
+                    //Fallback(States.estado1, 5000).
+                When(States.estado2).
+                    Then(() => Console.WriteLine("then estado 2")).
+                    Before(() => Console.WriteLine("before estado 2")).
+                    After(() => Console.WriteLine("after esatado 2")).
+                    TransitionTo(States.estado1, Events.ev2).
+                    Fallback(States.estado1, 5000);
 
-            FiniteStateMachine fsm = new FiniteStateMachine(new[] { s0, s1 }, new[] { e0, e1 }, s0);
+            var fsm = new FiniteStateMachine<States, Events>(sts, States.estado1);
 
-                for (int i = 0; i < 100; i++)
-                {
-                    new Thread(() => fsm.TriggerEvent(e0)).Start();
-                    new Thread(() => fsm.TriggerEvent(e1)).Start();
+            fsm.TriggerEvent(Events.ev1);
 
-                    if (i == 80) fsm.Dispose();
+            Thread.Sleep(20000);
 
-                Console.WriteLine("Stado:" + fsm.getState().id);
-                }
-
-
-
-
-                
-
-
-
-            
-            
-            //new Thread(() => fsm.TriggerEvent(e1)).Start();
-            //new Thread(() => throw new Exception("sdfsdf")).Start();
-
-            
+            fsm.TriggerEvent(Events.ev1);
 
 
 
 
 
 
-            Console.WriteLine("terminado el hilo principal---------------------------------");
 
 
 
@@ -56,3 +56,4 @@ namespace ConsoleTestApp
         }
     }
 }
+

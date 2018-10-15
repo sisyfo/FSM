@@ -1,19 +1,20 @@
 ﻿namespace FSM
 {
-    public struct Event
+    public class Event<St, Ev>
     {
-        public int id { get; }
-        public State sourceState { get; }
-        public State targetState { get; }
+        public Ev id { get; }
+        public St sourceState { get; }
+        public St targetState { get; }
 
-        private Event(int id, State sourceState, State targetState)
+        private Event(Ev id, St sourceState, St targetState)
         {
             this.id = id;
             this.sourceState = sourceState;
             this.targetState = targetState;
         }
 
-        public static Event CreateEvent(int id, State sourceState, State targetState) => new Event(id, sourceState, targetState);
+        public static Event<St, Ev> CreateEvent(Ev id, St sourceState, St targetState) => 
+            new Event<St, Ev>(id, sourceState, targetState);
 
         public override string ToString() => "Event " + id.ToString();
     }
