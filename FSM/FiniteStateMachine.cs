@@ -11,42 +11,50 @@ namespace sisifo.FSM
     {
         private const int InfiniteWaitTime = -1;
         private readonly BlockingCollection<Ev> EventsQueue;
-        private St CurrentState;
+        private St CurrentStateId;
         private readonly IEnumerable<State<St,Ev>> StateMachineBuild;
-        private readonly CancellationTokenSource tokenSource;
-        private readonly CancellationToken token;
+        private readonly CancellationTokenSource TokenSource;
+        private readonly CancellationToken Token;
 
-        private void loopTask()
+        private State<St, Ev> CurrentState => GetStateById(CurrentStateId);
+        private State<St, Ev> GetStateById(St stateId) => 
+            StateMachineBuild?.FirstOrDefault(p => p.StateId.Equals(stateId));
+        private Event<St, Ev> GetTransitionById(St stateId, Ev @event) =>
+            GetStateById(stateId)?.Transitions?.FirstOrDefault(p => p.EventId.Equals(@event));
+
+        private void LoopTask()
         {
             try
             {
                 (St state, int waitTime) fallbackData = (default(St), InfiniteWaitTime);
+                bool IsFallback() => (fallbackData.waitTime != InfiniteWaitTime);
+
                 while (true)
                 {
-                    Ev nextEvent;
-                    EventsQueue.TryTake(out nextEvent, fallbackData.waitTime, token);
+                    Ev currentEventId;
+                    EventsQueue.TryTake(out currentEventId, fallbackData.waitTime, Token);
 
-                    var currentStEv = StateMachineBuild?.FirstOrDefault(p => p.id.Equals(CurrentState));
-                    var eventTransition = currentStEv?.transitions?.FirstOrDefault(p => p.id.Equals(nextEvent));
-                    var targetStEv = (fallbackData.waitTime != InfiniteWaitTime) ? 
-                        StateMachineBuild?.FirstOrDefault(p => p.id.Equals(fallbackData.state)) :
-                        StateMachineBuild?.FirstOrDefault(p => eventTransition != null && p.id.Equals(eventTransition.targetState));
-                    var fallback = targetStEv?.fallback;
+                    var currentEvent = GetTransitionById(CurrentStateId, currentEventId);
 
-                    if (targetStEv != null)
-                    {
-                        CurrentState = (fallbackData.waitTime != InfiniteWaitTime) ? 
-                            fallbackData.state : 
-                            eventTransition.targetState;
-                        currentStEv.after?.Invoke();
-                        targetStEv.before?.Invoke();
-                        targetStEv.action?.Invoke();
-                        
-                    }
+                    // Event not allowed for the currentState => ignore event
+                    if (!IsFallback() && currentEvent == null) continue; 
 
-                    fallbackData = (fallback != null) ? (fallback.State, fallback.WaitTime) : (default(St), InfiniteWaitTime);
+                    var targetState = IsFallback() ? GetStateById(fallbackData.state) : GetStateById(currentEvent.TargetState);
 
-                    if (token.IsCancellationRequested) break;
+                    // State not declared in the statemachine => ignore event
+                    if (targetState == null) continue; 
+
+                    CurrentState.After?.Invoke();
+                    targetState.Before?.Invoke();
+                    targetState.Action?.Invoke();
+
+                    CurrentStateId = targetState.StateId;
+
+                    fallbackData = (targetState.Fallback != null) ? 
+                        (targetState.Fallback.State, targetState.Fallback.WaitTime) : 
+                        (default(St), InfiniteWaitTime);
+
+                    if (Token.IsCancellationRequested) break;
                 }
             }
             catch (OperationCanceledException _) { }
@@ -56,11 +64,11 @@ namespace sisifo.FSM
         public FiniteStateMachine(IEnumerable<State<St, Ev>> stateMachineBuild, St currentState)
         {
             this.StateMachineBuild = stateMachineBuild;
-            this.CurrentState = currentState;
+            this.CurrentStateId = currentState;
             this.EventsQueue = new BlockingCollection<Ev>(new ConcurrentQueue<Ev>());
-            this.tokenSource = new CancellationTokenSource();
-            this.token = tokenSource.Token;
-            new Task(() => loopTask(), token).Start();
+            this.TokenSource = new CancellationTokenSource();
+            this.Token = TokenSource.Token;
+            new Task(() => LoopTask(), Token).Start();
         }
 
         public void TriggerEvent(Ev newevent)
@@ -69,11 +77,11 @@ namespace sisifo.FSM
             catch (ObjectDisposedException _) { }
         }
 
-        public State<St, Ev> getState() => CurrentState;
+        public State<St, Ev> getState() => CurrentStateId;
 
         public void Dispose()
         {
-            tokenSource.Cancel();
+            TokenSource.Cancel();
         }
     }
 }

@@ -2,20 +2,20 @@
 {
     public class Event<St, Ev>
     {
-        public Ev id { get; }
-        public St sourceState { get; }
-        public St targetState { get; }
+        public Ev EventId { get; }
+        public St SourceState { get; }
+        public St TargetState { get; }
 
-        private Event(Ev id, St sourceState, St targetState)
+        private Event(Ev eventId, St sourceState, St targetState)
         {
-            this.id = id;
-            this.sourceState = sourceState;
-            this.targetState = targetState;
+            this.EventId = eventId;
+            this.SourceState = sourceState;
+            this.TargetState = targetState;
         }
 
         public static Event<St, Ev> CreateEvent(Ev id, St sourceState, St targetState) => 
             new Event<St, Ev>(id, sourceState, targetState);
 
-        public override string ToString() => "Event " + id.ToString();
+        public override string ToString() => "Event " + EventId.ToString();
     }
 }

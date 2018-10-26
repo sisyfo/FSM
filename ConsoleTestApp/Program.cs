@@ -27,6 +27,11 @@ namespace ConsoleTestApp
 
             var fsm = new FiniteStateMachine<States, Events>(sts, States.state1);
 
+            //fsm.TriggerEvent(Events.ev1);
+            //fsm.TriggerEvent(Events.ev2);
+            //Thread.Sleep(3000);
+            //fsm.TriggerEvent(Events.ev1);
+
             // TriggerEvent is Thread-Safe
             new Thread(() => fsm.TriggerEvent(Events.ev1)).Start();
             new Thread(() => fsm.TriggerEvent(Events.ev2)).Start();
