@@ -28,13 +28,17 @@ namespace sisifo.FSM
 
         internal State<St, Ev> ApplyAction(Action action) => 
             new State<St, Ev>(this.StateId, action, this.Before, this.After, this.Transitions, this.Fallback);
+
         internal State<St, Ev> ApplyBefore(Action before) => 
             new State<St, Ev>(this.StateId, this.Action, before, this.After, this.Transitions, this.Fallback);
+
         internal State<St, Ev> ApplyAfter(Action after) => 
             new State<St, Ev>(this.StateId, this.Action, this.Before, after, this.Transitions, this.Fallback);
+
         internal State<St, Ev> ApplyTransition(St state, Ev ev) =>
             new State<St, Ev>(this.StateId, this.Action, this.Before, this.After, 
                 Transitions.Append(Event<St, Ev>.CreateEvent(ev, this.StateId, state)), this.Fallback);
+
         internal State<St, Ev> ApplyFallback(St state, int time) =>
             new State<St, Ev>(this.StateId, this.Action, this.Before, this.After, this.Transitions, 
                 Fallback<St>.CreateFallback(state, time));

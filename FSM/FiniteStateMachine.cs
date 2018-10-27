@@ -17,8 +17,10 @@ namespace sisifo.FSM
         private readonly CancellationToken Token;
 
         private State<St, Ev> CurrentState => GetStateById(CurrentStateId);
+
         private State<St, Ev> GetStateById(St stateId) => 
             StateMachineBuild?.FirstOrDefault(p => p.StateId.Equals(stateId));
+
         private Event<St, Ev> GetTransitionById(St stateId, Ev @event) =>
             GetStateById(stateId)?.Transitions?.FirstOrDefault(p => p.EventId.Equals(@event));
 
@@ -34,7 +36,7 @@ namespace sisifo.FSM
                 {
                     EventsQueue.TryTake(out currentEventId, fallbackData.waitTime, Token);
                 }
-                catch (OperationCanceledException _)
+                catch (OperationCanceledException)
                 {
                     break;
                 }
@@ -77,10 +79,10 @@ namespace sisifo.FSM
         public void TriggerEvent(Ev newevent)
         {
             try { EventsQueue.Add(newevent); }
-            catch (ObjectDisposedException _) { }
+            catch (ObjectDisposedException) { }
         }
 
-        public State<St, Ev> getState() => CurrentStateId;
+        public State<St, Ev> GetState() => CurrentStateId;
 
         public void Dispose()
         {
