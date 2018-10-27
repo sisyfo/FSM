@@ -24,41 +24,44 @@ namespace sisifo.FSM
 
         private void LoopTask()
         {
-            try
+            (St state, int waitTime) fallbackData = (default(St), InfiniteWaitTime);
+            bool IsFallback() => (fallbackData.waitTime != InfiniteWaitTime);
+
+            while (true)
             {
-                (St state, int waitTime) fallbackData = (default(St), InfiniteWaitTime);
-                bool IsFallback() => (fallbackData.waitTime != InfiniteWaitTime);
-
-                while (true)
+                Ev currentEventId;
+                try
                 {
-                    Ev currentEventId;
                     EventsQueue.TryTake(out currentEventId, fallbackData.waitTime, Token);
-
-                    var currentEvent = GetTransitionById(CurrentStateId, currentEventId);
-
-                    // Event not allowed for the currentState => ignore event
-                    if (!IsFallback() && currentEvent == null) continue; 
-
-                    var targetState = IsFallback() ? GetStateById(fallbackData.state) : GetStateById(currentEvent.TargetState);
-
-                    // State not declared in the statemachine => ignore event
-                    if (targetState == null) continue; 
-
-                    CurrentState.After?.Invoke();
-                    targetState.Before?.Invoke();
-                    targetState.Action?.Invoke();
-
-                    CurrentStateId = targetState.StateId;
-
-                    fallbackData = (targetState.Fallback != null) ? 
-                        (targetState.Fallback.State, targetState.Fallback.WaitTime) : 
-                        (default(St), InfiniteWaitTime);
-
-                    if (Token.IsCancellationRequested) break;
                 }
+                catch (OperationCanceledException _)
+                {
+                    break;
+                }
+
+                var currentEvent = GetTransitionById(CurrentStateId, currentEventId);
+
+                // Event not allowed for the currentState => ignore event
+                if (!IsFallback() && currentEvent == null) continue;
+
+                var targetState = IsFallback() ? GetStateById(fallbackData.state) : GetStateById(currentEvent.TargetState);
+
+                // State not declared in the statemachine => ignore event
+                if (targetState == null) continue;
+
+                CurrentState.After?.Invoke();
+                targetState.Before?.Invoke();
+                targetState.Action?.Invoke();
+
+                CurrentStateId = targetState.StateId;
+
+                fallbackData = (targetState.Fallback != null) ?
+                    (targetState.Fallback.State, targetState.Fallback.WaitTime) :
+                    (default(St), InfiniteWaitTime);
+
+                if (Token.IsCancellationRequested) break;
             }
-            catch (OperationCanceledException _) { }
-            finally { EventsQueue.Dispose(); }
+            EventsQueue.Dispose();
         }
 
         public FiniteStateMachine(IEnumerable<State<St, Ev>> stateMachineBuild, St currentState)

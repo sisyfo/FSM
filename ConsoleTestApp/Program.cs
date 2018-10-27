@@ -36,6 +36,7 @@ namespace ConsoleTestApp
             new Thread(() => fsm.TriggerEvent(Events.ev1)).Start();
             new Thread(() => fsm.TriggerEvent(Events.ev2)).Start();
 
+
             Thread.Sleep(3000);
 
             new Thread(() => fsm.TriggerEvent(Events.ev1)).Start();
