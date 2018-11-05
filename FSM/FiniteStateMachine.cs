@@ -82,7 +82,7 @@ namespace sisifo.FSM
             catch (ObjectDisposedException) { }
         }
 
-        public State<St, Ev> GetState() => CurrentStateId;
+        public St GetState() => CurrentStateId;
 
         public void Dispose()
         {
