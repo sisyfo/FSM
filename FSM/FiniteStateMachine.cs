@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace sisifo.FSM
 {
-    public class FiniteStateMachine<St, Ev> : IDisposable
+    public class FiniteStateMachine<St, Ev>
     {
         private const int InfiniteWaitTime = -1;
         private readonly BlockingCollection<Ev> EventsQueue;
