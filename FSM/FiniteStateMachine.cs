@@ -32,9 +32,10 @@ namespace sisifo.FSM
             while (true)
             {
                 Ev currentEventId;
+                bool eventDequeued;
                 try
                 {
-                    EventsQueue.TryTake(out currentEventId, fallbackData.waitTime, Token);
+                    eventDequeued = EventsQueue.TryTake(out currentEventId, fallbackData.waitTime, Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -46,7 +47,7 @@ namespace sisifo.FSM
                 // Event not allowed for the currentState => ignore event
                 if (!IsFallback() && currentEvent == null) continue;
 
-                var targetState = IsFallback() ? GetStateById(fallbackData.state) : GetStateById(currentEvent.TargetState);
+                var targetState = (!eventDequeued && IsFallback()) ? GetStateById(fallbackData.state) : GetStateById(currentEvent.TargetState);
 
                 // State not declared in the statemachine => ignore event
                 if (targetState == null) continue;
