@@ -42,27 +42,20 @@ namespace sisifo.FSM
                     break;
                 }
 
-
                 State<St, Ev> targetState = null;
                 if (eventDequeued)
                 {
                     var currentEvent = GetTransitionById(CurrentStateId, currentEventId);
                     // Event not allowed for the currentState => ignore event
                     if (currentEvent == null) continue;
+
                     targetState = GetStateById(currentEvent.TargetState);
                 }
                 else
-                {
                     targetState = GetStateById(fallbackData.state);
-                }
                 
                 // State not declared in the statemachine => ignore event
                 if (targetState == null) continue;
-
-                // Event not allowed for the currentState => ignore event
-                //if (currentEvent == null) continue;
-                //var targetState = (!eventDequeued && IsFallback()) ? GetStateById(fallbackData.state) : GetStateById(currentEvent.TargetState);
-                //if (targetState == null) continue;
 
                 CurrentState.After?.Invoke();
                 targetState.Before?.Invoke();
