@@ -27,7 +27,6 @@ namespace sisifo.FSM
         private void LoopTask()
         {
             (St state, int waitTime) fallbackData = (default(St), InfiniteWaitTime);
-            bool IsFallback() => (fallbackData.waitTime != InfiniteWaitTime);
 
             while (true)
             {
